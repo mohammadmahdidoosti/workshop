@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>داشبورد فرصت آنلاین واحدهای تولیدی</title>
+<style>
+:root {
+  --color-fg: #1f2328; --color-fg-muted: #636c76; --color-bg: #f6f7f9; --color-panel: #ffffff; --color-border-line: #e3e6ea;
+  --color-ok: #1a7f37; --color-warn: #9a6700; --color-bad: #cf222e;
+  --font-anthropic-sans: Vazirmatn, Tahoma, sans-serif; --font-anthropic-serif: Vazirmatn, Tahoma, serif;
+  --cds-font-size-caption: 12.5px; --cds-font-size-body: 14px; --cds-font-size-heading: 16px; --cds-font-size-title: 26px; --cds-font-weight-medium: 600;
+  --cds-gap-xs: 4px; --cds-gap-sm: 8px; --cds-gap-md: 14px; --cds-gap-lg: 22px; --cds-pad-xs: 4px; --cds-pad-sm: 8px; --cds-pad-lg: 16px; --cds-radius: 8px;
+  --cds-surface-popover: #ffffff; --cds-border: #d0d7de; --cds-shadow-popover: 0 4px 14px rgba(0,0,0,.12); --cds-text-secondary: #636c76;
+  --cds-chart-grid: #eceff2; --cds-chart-muted: #c3cad3; --cds-dur-slow: .3s;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --color-fg: #e6edf3; --color-fg-muted: #9198a1; --color-bg: #0d1117; --color-panel: #161b22; --color-border-line: #30363d;
+  --cds-surface-popover: #1c2129; --cds-border: #3d444d; --cds-text-secondary: #9198a1; --cds-chart-grid: #222831; --cds-chart-muted: #3d4651;
+} }
+html, body { margin: 0; background: var(--color-bg); }
+#dash-root { max-width: 1280px; margin: 0 auto; padding: 20px 16px 40px; }
+</style>
+<script src="vendor/d3.min.js"></script>
+<script src="shim.js"></script>
+</head>
+<body>
+<div id="dash-root">
+<style>
+.wp { direction: rtl; font-family: var(--font-anthropic-sans), Tahoma, sans-serif; color: var(--color-fg); display: flex; flex-direction: column; gap: var(--cds-gap-lg); }
+.wp h1 { font-family: var(--font-anthropic-serif), Tahoma, serif; font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; }
+.wp h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0 0 var(--cds-gap-xs); }
+.wp .lead { color: var(--color-fg-muted); margin: var(--cds-gap-xs) 0 0; font-size: var(--cds-font-size-body); line-height: 1.8; }
+.wp .lead b { color: var(--color-fg); font-weight: 600; }
+.wp .note { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); margin: 0 0 var(--cds-gap-sm); line-height: 1.7; }
+.wp .bar { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); align-items: center; }
+.wp select, .wp input[type=search], .wp button { font: inherit; font-size: var(--cds-font-size-body); color: var(--color-fg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); }
+.wp button { cursor: pointer; }
+.wp input[type=search] { min-width: min(100%, 16rem); }
+.wp .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: var(--cds-gap-md); }
+.wp .tile, .wp .card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; }
+.wp .tile .lbl { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.wp .tile .val { font-family: var(--font-anthropic-serif), Tahoma, serif; font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; margin-top: var(--cds-gap-xs); }
+.wp .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: var(--cds-gap-md); }
+.wp .chart { position: relative; min-height: 260px; }
+.wp .chart svg { display: block; }
+.wp .tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); max-width: 16rem; line-height: 1.6; }
+.wp .tip .t { color: var(--cds-text-secondary); }
+.wp .tbox { max-height: 30rem; overflow: auto; }
+.wp table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.wp th { position: sticky; top: 0; background: var(--color-panel); text-align: right; font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+.wp th button { all: unset; cursor: pointer; }
+.wp td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); vertical-align: top; }
+.wp tbody tr.click { cursor: pointer; }
+.wp tbody tr.click:hover, .wp tbody tr.on { background: color-mix(in srgb, var(--color-fg) 6%, transparent); }
+.wp .num { text-align: left; }
+.wp .pill { display: inline-block; min-width: 1.4rem; text-align: center; border-radius: var(--cds-radius); padding: 0 var(--cds-pad-xs); }
+.wp .angle { font-size: var(--cds-font-size-body); line-height: 1.8; margin: 0 0 var(--cds-gap-md); }
+.wp .chip { background: var(--color-bg); }
+@media (max-width: 40rem) { .wp .hide-n { display: none; } }
+[data-dash-source-state=empty] { color: transparent; }
+[data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+</style>
+
+<div class="wp" lang="fa">
+  <header id="top">
+    <h1>فرصت آنلاین واحدهای تولیدی شهرک‌های صنعتی</h1>
+    <p class="lead">در انتخاب فعلی <b data-draw="kpi-n2" data-source="totals" data-field="n">—</b> واحد هست. بیشترین فرصت پلتفرم B2B/سرنخ را «<b data-draw="top-b2b" data-source="subs" data-field="sub">—</b>» دارد و بیشترین فرصت فروش مستقیم را «<b data-draw="top-d2c" data-source="subs" data-field="sub">—</b>».</p>
+  </header>
+
+  <div class="bar" id="filters">
+    <select data-draw="sel-province" data-source="totals" aria-label="استان"></select>
+    <select data-draw="sel-model" data-source="totals" aria-label="مدل پیشنهادی"></select>
+    <button class="lx-reset" type="button">پاک کردن فیلترها</button>
+    <button class="lx-clear-sub chip" type="button" hidden>دسته: <span data-draw="sub-name" data-source="subs" data-field="sub">—</span> ×</button>
+  </div>
+
+  <section class="tiles" id="kpis">
+    <div class="tile"><div class="lbl">تعداد واحد</div><div class="val" data-draw="kpi" data-k="n" data-source="totals" data-field="n">—</div></div>
+    <div class="tile"><div class="lbl">با شماره تماس</div><div class="val" data-draw="kpi" data-k="reach" data-source="totals" data-field="reach">—</div></div>
+    <div class="tile"><div class="lbl">با شماره موبایل</div><div class="val" data-draw="kpi" data-k="mob" data-source="totals" data-field="mob">—</div></div>
+    <div class="tile"><div class="lbl">تعداد زیردسته</div><div class="val" data-draw="kpi" data-k="cats" data-source="totals" data-field="cats">—</div></div>
+  </section>
+
+  <section class="grid" id="charts">
+    <div class="card" id="by-model">
+      <h2>واحدها به تفکیک مدل پیشنهادی</h2>
+      <p class="note">روی هر میله بزنید تا همه کارت‌ها با همان مدل فیلتر شوند.</p>
+      <div class="chart" data-draw="ch-model" data-source="totals"></div>
+    </div>
+    <div class="card" id="by-province">
+      <h2>۱۵ استان اول</h2>
+      <p class="note">برای مدل انتخاب‌شده. روی هر میله بزنید تا استان فیلتر شود.</p>
+      <div class="chart" data-draw="ch-prov" data-source="totals"></div>
+    </div>
+  </section>
+
+  <section class="card" id="map">
+    <h2>نقشه فرصت دسته‌ها</h2>
+    <p class="note">محور افقی: امتیاز فروش مستقیم به مشتری (D2C). محور عمودی: امتیاز پلتفرم B2B/سرنخ. اندازه دایره: تعداد واحد. هرچه بالاتر، فرصت پلتفرم B2B بیشتر؛ هرچه چپ‌تر، فرصت فروش مستقیم با برند بیشتر. روی دایره بزنید تا آن دسته باز شود. امتیازها نظر کارشناسی‌اند، نه داده بازار.</p>
+    <div class="chart" data-draw="ch-map" data-source="subs" style="min-height:360px"></div>
+  </section>
+
+  <section class="card" id="cats">
+    <h2>دسته‌ها</h2>
+    <p class="note">برای مرتب‌سازی روی عنوان ستون بزنید. روی هر ردیف بزنید تا جزئیات و تأمین‌کننده‌های آن دسته پایین صفحه بیاید.</p>
+    <div class="tbox">
+      <table class="lx-subs" data-source="subs" data-row-key="province,sub">
+        <thead><tr>
+          <th data-field="sub"><button type="button" data-sort="sub">زیردسته</button></th>
+          <th data-field="model" class="hide-n"><button type="button" data-sort="model">مدل پیشنهادی</button></th>
+          <th data-field="b2b" class="num"><button type="button" data-sort="b2b">B2B</button></th>
+          <th data-field="score" class="num"><button type="button" data-sort="score">D2C</button></th>
+          <th data-field="n" class="num"><button type="button" data-sort="n">واحد</button></th>
+          <th data-field="reach" class="num hide-n"><button type="button" data-sort="reach">با تماس</button></th>
+          <th data-field="mob" class="num hide-n"><button type="button" data-sort="mob">موبایل</button></th>
+          <th data-field="top_park" class="hide-n">شهرک اصلی</th>
+        </tr></thead>
+        <tbody data-draw="subs-body" data-source="subs"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card" id="detail">
+    <h2>جزئیات دسته انتخاب‌شده</h2>
+    <p class="note lx-nosub">یک دسته را از جدول یا نقشه بالا انتخاب کنید.</p>
+    <div class="lx-sub" hidden>
+      <p class="angle"><b>زاویه آنلاین:</b> <span data-draw="angle" data-source="subs" data-field="angle">—</span></p>
+      <h2>خوشه‌ها: شهرک‌هایی با ۵ واحد یا بیشتر از این دسته</h2>
+      <p class="note">مناسب برای سفر میدانی یا تماس گروهی.</p>
+      <div class="tbox" style="max-height:18rem">
+        <table data-source="clusters" data-row-key="cid">
+          <thead><tr>
+            <th data-field="park">شهرک</th>
+            <th data-field="province">استان</th>
+            <th data-field="n" class="num">واحد</th>
+            <th data-field="reach" class="num">با تماس</th>
+          </tr></thead>
+          <tbody data-draw="cl-body" data-source="clusters"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="suppliers">
+    <h2>تأمین‌کننده‌ها</h2>
+    <p class="note">فقط واحدهایی که شماره تماس دارند. حداکثر ۳۰۰ ردیف نشان داده می‌شود؛ برای محدود کردن، دسته، استان یا جستجو را تغییر دهید. داده مال حدود ۴ سال پیش است.</p>
+    <div class="bar" style="margin-bottom:var(--cds-gap-sm)">
+      <input class="lx-q" type="search" placeholder="جستجو در نام، محصول یا شهرک…" aria-label="جستجو">
+    </div>
+    <p class="note lx-noq">برای دیدن لیست، یک دسته انتخاب کنید یا چیزی جستجو کنید.</p>
+    <div class="tbox lx-tb" hidden>
+      <table data-source="units_b2b" data-row-key="id">
+        <thead><tr>
+          <th data-field="name">نام واحد</th>
+          <th data-field="products">محصولات</th>
+          <th data-field="mobile">موبایل</th>
+          <th data-field="landline">تلفن ثابت</th>
+          <th data-field="park" class="hide-n">شهرک</th>
+          <th data-field="province" class="hide-n">استان</th>
+          <th data-field="sub" class="hide-n">زیردسته</th>
+          <th data-field="year" class="num hide-n">سال شروع</th>
+        </tr></thead>
+        <tbody data-draw="u-b2b" data-source="units_b2b"></tbody>
+      </table>
+    </div>
+    <div class="tbox lx-td" hidden>
+      <table data-source="units_d2c" data-row-key="id">
+        <thead><tr>
+          <th data-field="name">نام واحد</th>
+          <th data-field="products">محصولات</th>
+          <th data-field="mobile">موبایل</th>
+          <th data-field="landline">تلفن ثابت</th>
+          <th data-field="park" class="hide-n">شهرک</th>
+          <th data-field="province" class="hide-n">استان</th>
+          <th data-field="sub" class="hide-n">زیردسته</th>
+          <th data-field="year" class="num hide-n">سال شروع</th>
+        </tr></thead>
+        <tbody data-draw="u-d2c" data-source="units_d2c"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+const ALLP = 'همه استان‌ها', ALLM = 'همه مدل‌ها';
+const D2C_MODELS = ['برند خودمون (Private Label)', 'نمایندگی آنلاین برند خودشون'];
+const fmt = d3.format(',');
+const P = () => dash.params().province || ALLP;
+const M = () => dash.params().model || ALLM;
+const enc = (s) => encodeURIComponent(String(s));
+const rows = (id) => { const g = dash.data(id); return g.status === 'ok' ? g.data : null; };
+window.wpSort = { key: 'b2b', dir: -1 };
+
+// sub's model, to know which supplier file to read
+const subModel = () => {
+  const s = dash.params().sub; if (!s) return null;
+  const r = rows('subs'); if (!r) return undefined;
+  const hit = r.find((x) => x.province === ALLP && x.sub === s);
+  return hit ? hit.model : null;
+};
+const wantFiles = () => {
+  const s = dash.params().sub, q = (dash.params().q || '').trim();
+  if (!s && !q) return [];
+  if (s) { const m = subModel(); if (m === undefined) return []; if (m) return [D2C_MODELS.includes(m) ? 'd2c' : 'b2b']; }
+  const mm = M();
+  if (mm === ALLM) return ['b2b', 'd2c'];
+  return [D2C_MODELS.includes(mm) ? 'd2c' : 'b2b'];
+};
+
+// show / hide
+dash.onData(() => {
+  const s = dash.params().sub;
+  document.querySelectorAll('.lx-clear-sub').forEach((b) => { b.hidden = !s; });
+  document.querySelectorAll('.lx-sub').forEach((e) => { e.hidden = !s; });
+  document.querySelectorAll('.lx-nosub').forEach((e) => { e.hidden = !!s; });
+  const f = wantFiles();
+  document.querySelectorAll('.lx-noq').forEach((e) => { e.hidden = f.length > 0; });
+  document.querySelectorAll('.lx-tb').forEach((e) => { e.hidden = !f.includes('b2b'); });
+  document.querySelectorAll('.lx-td').forEach((e) => { e.hidden = !f.includes('d2c'); });
+  document.querySelectorAll('.lx-q').forEach((e) => { if (e !== document.activeElement) e.value = dash.params().q || ''; });
+});
+
+// controls
+document.querySelectorAll('.lx-reset').forEach((b) => b.addEventListener('click', () => dash.resetParams()));
+document.querySelectorAll('.lx-clear-sub').forEach((b) => b.addEventListener('click', () => dash.setParams({ sub: null })));
+document.querySelectorAll('.lx-q').forEach((inp) => {
+  let t; inp.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => dash.setParams({ q: inp.value.trim() }), 350); });
+});
+document.querySelectorAll('[data-sort]').forEach((b) => b.addEventListener('click', () => {
+  const k = b.getAttribute('data-sort');
+  window.wpSort = { key: k, dir: window.wpSort.key === k ? -window.wpSort.dir : (k === 'sub' || k === 'model' ? 1 : -1) };
+  dash.draw('subs-body');
+}));
+
+const fillSelect = (sel, opts, cur, key) => {
+  sel.replaceChildren(...opts.map((o) => new Option(o, o)));
+  sel.value = cur;
+  sel.onchange = () => dash.setParams({ [key]: sel.value });
+};
+dash.draw('sel-province', (sel) => {
+  const r = rows('totals'); if (!r) { sel.replaceChildren(new Option('—')); return; }
+  const ps = [...new Set(r.filter((x) => x.province !== ALLP).map((x) => x.province))].sort((a, b) => a.localeCompare(b, 'fa'));
+  fillSelect(sel, [ALLP, ...ps], P(), 'province');
+});
+dash.draw('sel-model', (sel) => {
+  const r = rows('totals'); if (!r) { sel.replaceChildren(new Option('—')); return; }
+  const ms = [...new Set(r.filter((x) => x.model !== ALLM).map((x) => x.model))].sort((a, b) => a.localeCompare(b, 'fa'));
+  fillSelect(sel, [ALLM, ...ms], M(), 'model');
+});
+
+// KPIs
+const totRow = () => { const r = rows('totals'); return r ? r.find((x) => x.province === P() && x.model === M()) : null; };
+const kpi = (el, k) => {
+  const t = totRow();
+  el.setAttribute('data-where', 'province=' + enc(P()) + '&model=' + enc(M()));
+  el.textContent = t ? fmt(t[k]) : '—';
+};
+dash.draw('kpi', (el) => kpi(el, el.getAttribute('data-k')));
+dash.draw('kpi-n2', (el) => kpi(el, 'n'));
+
+// subs in current selection
+const subsSel = () => {
+  const r = rows('subs'); if (!r) return null;
+  return r.filter((x) => x.province === P() && (M() === ALLM || x.model === M()));
+};
+const topBy = (el, key) => {
+  const s = subsSel();
+  if (!s || !s.length) { el.textContent = '—'; return; }
+  const t = s.slice().sort((a, b) => b[key] - a[key] || b.n - a.n)[0];
+  el.setAttribute('data-where', 'province=' + enc(t.province) + '&sub=' + enc(t.sub));
+  el.textContent = t.sub;
+};
+dash.draw('top-b2b', (el) => topBy(el, 'b2b'));
+dash.draw('top-d2c', (el) => topBy(el, 'score'));
+dash.draw('sub-name', (el) => {
+  const s = dash.params().sub; if (!s) { el.textContent = '—'; return; }
+  el.setAttribute('data-where', 'province=' + enc(ALLP) + '&sub=' + enc(s));
+  el.textContent = s;
+});
+
+// horizontal bar chart helper
+const hbar = (el, data, label, onPick, picked) => {
+  el.replaceChildren();
+  if (!data || !data.length) return;
+  const W = el.clientWidth || 400, rowH = 26, H = data.length * rowH + 10;
+  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).style('direction', 'ltr');
+  const meas = svg.append('text').attr('font-size', 12);
+  let lw = 0; data.forEach((d) => { meas.text(label(d)); lw = Math.max(lw, meas.node().getComputedTextLength()); });
+  meas.text(fmt(d3.max(data, (d) => d.n))); const nw = meas.node().getComputedTextLength(); meas.remove();
+  lw = Math.min(lw + 8, W * 0.5);
+  const x = d3.scaleLinear([0, d3.max(data, (d) => d.n)], [0, Math.max(10, W - lw - nw - 16)]);
+  const g = svg.selectAll('g.r').data(data).join('g').attr('class', 'r').attr('transform', (d, i) => `translate(0,${i * rowH + 4})`).style('cursor', 'pointer').on('click', (e, d) => onPick(d));
+  g.append('text').attr('x', W).attr('y', 14).attr('text-anchor', 'start').attr('direction', 'rtl').attr('font-size', 12).attr('fill', 'var(--color-fg)')
+    .text((d) => { const t = label(d); return t.length > 34 ? t.slice(0, 33) + '…' : t; });
+  g.append('rect').attr('x', (d) => W - lw - x(d.n)).attr('y', 3).attr('height', 16).attr('width', (d) => Math.max(1, x(d.n))).attr('rx', 3)
+    .attr('fill', (d) => (picked(d) ? dash.colors[0] : 'var(--cds-chart-muted)'));
+  g.append('text').attr('x', (d) => W - lw - x(d.n) - 4).attr('y', 15).attr('text-anchor', 'end').attr('font-size', 11).attr('fill', 'var(--color-fg-muted)').text((d) => fmt(d.n));
+};
+dash.draw('ch-model', (el) => {
+  const r = rows('totals'); if (!r) { el.replaceChildren(); return; }
+  const d = r.filter((x) => x.province === P() && x.model !== ALLM).sort((a, b) => b.n - a.n);
+  hbar(el, d, (x) => x.model, (x) => dash.setParams({ model: M() === x.model ? ALLM : x.model }), (x) => M() === ALLM || x.model === M());
+});
+dash.draw('ch-prov', (el) => {
+  const r = rows('totals'); if (!r) { el.replaceChildren(); return; }
+  const d = r.filter((x) => x.model === M() && x.province !== ALLP).sort((a, b) => b.n - a.n).slice(0, 15);
+  hbar(el, d, (x) => x.province, (x) => dash.setParams({ province: P() === x.province ? ALLP : x.province }), (x) => P() === ALLP || x.province === P());
+});
+
+// opportunity map (bubble)
+dash.draw('ch-map', (el) => {
+  el.replaceChildren();
+  const s = subsSel(); if (!s || !s.length) return;
+  const W = el.clientWidth || 600, H = 360, m = { t: 16, r: 44, b: 40, l: 16 };
+  const x = d3.scaleLinear([0.5, 5.5], [W - m.r, m.l]); // RTL: higher D2C toward the left
+  const y = d3.scaleLinear([0.5, 5.5], [H - m.b, m.t]);
+  const rr = d3.scaleSqrt([0, d3.max(s, (d) => d.n)], [3, 26]);
+  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).style('direction', 'ltr');
+  for (let i = 1; i <= 5; i++) {
+    svg.append('line').attr('x1', x(i)).attr('x2', x(i)).attr('y1', m.t).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-grid)');
+    svg.append('line').attr('y1', y(i)).attr('y2', y(i)).attr('x1', m.l).attr('x2', W - m.r).attr('stroke', 'var(--cds-chart-grid)');
+    svg.append('text').attr('x', x(i)).attr('y', H - m.b + 16).attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', 'var(--color-fg-muted)').text(i);
+    svg.append('text').attr('x', W - m.r + 14).attr('y', y(i) + 4).attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', 'var(--color-fg-muted)').text(i);
+  }
+  svg.append('text').attr('x', (W - m.r + m.l) / 2).attr('y', H - 6).attr('text-anchor', 'middle').attr('direction', 'rtl').attr('font-size', 11).attr('fill', 'var(--color-fg-muted)').text('امتیاز فروش مستقیم (D2C) ←');
+  svg.append('text').attr('transform', `translate(${W - 8},${(H - m.b + m.t) / 2}) rotate(-90)`).attr('text-anchor', 'middle').attr('direction', 'rtl').attr('font-size', 11).attr('fill', 'var(--color-fg-muted)').text('امتیاز پلتفرم B2B →');
+  // deterministic jitter so bubbles in the same cell spread
+  const cells = d3.group(s, (d) => d.score + '-' + d.b2b);
+  const pos = new Map();
+  cells.forEach((arr) => { arr.sort((a, b) => b.n - a.n).forEach((d, i) => {
+    const a = i * 2.4, rad = i === 0 ? 0 : 9 + 5 * Math.sqrt(i);
+    pos.set(d.sub, [x(d.score) + Math.cos(a) * rad, y(d.b2b) + Math.sin(a) * rad]);
+  }); });
+  const cur = dash.params().sub;
+  const tip = d3.select(el).append('div').attr('class', 'tip').style('display', 'none');
+  svg.append('g').selectAll('circle').data(s.slice().sort((a, b) => b.n - a.n)).join('circle')
+    .attr('cx', (d) => pos.get(d.sub)[0]).attr('cy', (d) => pos.get(d.sub)[1]).attr('r', (d) => rr(d.n))
+    .attr('fill', (d) => (D2C_MODELS.includes(d.model) ? dash.colors[1] : dash.colors[0]))
+    .attr('fill-opacity', (d) => (cur && d.sub !== cur ? 0.15 : 0.55))
+    .attr('stroke', (d) => (d.sub === cur ? 'var(--color-fg)' : 'none')).attr('stroke-width', 2)
+    .style('cursor', 'pointer')
+    .on('click', (e, d) => dash.setParams({ sub: d.sub === cur ? null : d.sub }))
+    .on('mousemove', (e, d) => {
+      const [px, py] = d3.pointer(e, el);
+      tip.style('display', null).replaceChildren();
+      tip.append('div').attr('class', 't').text(d.sub);
+      tip.append('div').text(d.model);
+      tip.append('div').text('واحد: ' + fmt(d.n) + ' · B2B: ' + d.b2b + ' · D2C: ' + d.score);
+      const tw = tip.node().offsetWidth, th = tip.node().offsetHeight;
+      tip.style('left', Math.max(0, Math.min(px + 12, el.clientWidth - tw)) + 'px').style('top', Math.max(0, py - th - 8) + 'px');
+    })
+    .on('mouseleave', () => tip.style('display', 'none'));
+  // legend
+  const lg = svg.append('g').attr('transform', `translate(${m.l + 4},${m.t + 4})`);
+  [['B2B / پلتفرم / کاروان صنعت', dash.colors[0]], ['برند مصرفی / نمایندگی', dash.colors[1]]].forEach(([t, c], i) => {
+    lg.append('circle').attr('cx', 6).attr('cy', i * 18 + 6).attr('r', 5).attr('fill', c).attr('fill-opacity', 0.7);
+    lg.append('text').attr('x', 16).attr('y', i * 18 + 10).attr('text-anchor', 'end').attr('direction', 'rtl').attr('font-size', 11).attr('fill', 'var(--color-fg-muted)').text(t);
+  });
+});
+
+// categories table
+dash.draw('subs-body', (tb) => {
+  tb.replaceChildren();
+  const s = subsSel(); if (!s) return;
+  const { key, dir } = window.wpSort;
+  const cur = dash.params().sub;
+  s.slice().sort((a, b) => (typeof a[key] === 'number' ? (a[key] - b[key]) : String(a[key]).localeCompare(String(b[key]), 'fa')) * dir || b.n - a.n)
+    .forEach((d) => {
+      const tr = document.createElement('tr');
+      tr.className = 'click' + (d.sub === cur ? ' on' : '');
+      tr.dataset.key = enc(d.province) + ',' + enc(d.sub);
+      [[d.sub], [d.model, 'hide-n'], [d.b2b, 'num'], [d.score, 'num'], [fmt(d.n), 'num'], [fmt(d.reach), 'num hide-n'], [fmt(d.mob), 'num hide-n'], [d.top_park, 'hide-n']]
+        .forEach(([v, c]) => { const td = document.createElement('td'); if (c) td.className = c; td.textContent = v; tr.appendChild(td); });
+      tr.addEventListener('click', () => dash.setParams({ sub: d.sub === cur ? null : d.sub }));
+      tb.appendChild(tr);
+    });
+});
+
+// detail
+dash.draw('angle', (el) => {
+  const s = dash.params().sub, r = rows('subs');
+  const hit = s && r ? r.find((x) => x.province === ALLP && x.sub === s) : null;
+  if (!hit) { el.textContent = '—'; return; }
+  el.setAttribute('data-where', 'province=' + enc(ALLP) + '&sub=' + enc(s));
+  el.textContent = hit.angle;
+});
+dash.draw('cl-body', (tb) => {
+  tb.replaceChildren();
+  const s = dash.params().sub, r = rows('clusters'); if (!s || !r) return;
+  r.filter((x) => x.sub === s && (P() === ALLP || x.province === P())).slice(0, 60).forEach((d) => {
+    const tr = document.createElement('tr'); tr.dataset.key = String(d.cid);
+    [[d.park], [d.province], [fmt(d.n), 'num'], [fmt(d.reach), 'num']].forEach(([v, c]) => { const td = document.createElement('td'); if (c) td.className = c; td.textContent = v; tr.appendChild(td); });
+    tb.appendChild(tr);
+  });
+});
+
+// suppliers
+const unitBody = (tb, id) => {
+  tb.replaceChildren();
+  const r = rows(id); if (!r) return;
+  const s = dash.params().sub, q = (dash.params().q || '').trim(), p = P(), mm = M();
+  const out = [];
+  for (const d of r) {
+    if (s && d.sub !== s) continue;
+    if (p !== ALLP && d.province !== p) continue;
+    if (!s && mm !== ALLM && d.model !== mm) continue;
+    if (q && !(d.name + ' ' + d.products + ' ' + d.park).includes(q)) continue;
+    out.push(d); if (out.length >= 300) break;
+  }
+  out.forEach((d) => {
+    const tr = document.createElement('tr'); tr.dataset.key = String(d.id);
+    [[d.name], [d.products], [d.mobile], [d.landline], [d.park, 'hide-n'], [d.province, 'hide-n'], [d.sub, 'hide-n'], [d.year && d.year !== '0' ? d.year : '', 'num hide-n']]
+      .forEach(([v, c]) => { const td = document.createElement('td'); if (c) td.className = c; td.textContent = v; tr.appendChild(td); });
+    tb.appendChild(tr);
+  });
+};
+dash.draw('u-b2b', (tb) => unitBody(tb, 'units_b2b'));
+dash.draw('u-d2c', (tb) => unitBody(tb, 'units_d2c'));
+</script>
+
+</div>
+</body>
+</html>
