@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Market collector for the workshops dashboard.
 
-Searches Digikala and Basalam for a fixed list of keywords per category (slowly,
-one request every few seconds), then computes an opportunity index per category
-from demand, competition, brand gap and how many reachable suppliers we have.
+Searches Basalam (and Digikala only if USE_DIGIKALA=1) for a fixed list of
+keywords per category (slowly, one request every few seconds), then computes an opportunity index per category
+from demand (weekly sales), competition (products and vendors) and how many
+reachable suppliers we have.
 
 Writes  <DATA_DIR>/market.json   (raw numbers per keyword + index per category)
 Usage:  python3 collect.py           full run (~15-20 min)
@@ -16,6 +17,8 @@ from datetime import datetime, timezone
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.environ.get('DATA_DIR', '/usr/share/nginx/html/data')
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36'
+# Digikala answers the server with a bot-check redirect; leave it off unless it works plainly.
+USE_DIGIKALA = os.environ.get('USE_DIGIKALA') == '1'
 DELAY = (float(os.environ.get('DELAY_MIN', '4')), float(os.environ.get('DELAY_MAX', '7')))
 
 
@@ -77,13 +80,15 @@ def basalam(q):
     total = _first(j, 'meta.count', 'meta.total', 'total', 'count', 'data.total')
     prices = [_first(p, 'price', 'primaryPrice') for p in ps]
     vendors = {_first(p, 'vendor.id', 'vendor.identifier', 'vendor.name') for p in ps} - {None}
-    sales = [(_first(p, 'rating.signals', 'rating.count', 'salesCount') or 0) for p in ps]
+    num = lambda v: v if isinstance(v, (int, float)) else 0
     return {
         'total': total,
         'n_top': len(ps),
         'median_price': median(prices),
         'vendors_top': len(vendors),
-        'reviews_top': sum(s for s in sales if isinstance(s, (int, float))),
+        'sales_top': sum(num(_first(p, 'sales_count', 'salesCount')) for p in ps),
+        'sales_week_top': sum(num(_first(p, 'sales_count_week')) for p in ps),
+        'wholesale_share': round(sum(1 for p in ps if p.get('is_wholesale')) / (len(ps) or 1), 3),
     }
 
 
@@ -115,26 +120,27 @@ def build_index(per_q, queries, subs_rows):
             supply[r['sub']] = r
     cat = {}
     for sub, qs in queries.items():
-        dk = [per_q[q]['digikala'] for q in qs if 'error' not in per_q[q]['digikala']]
+        dk = [per_q[q]['digikala'] for q in qs if 'digikala' in per_q[q] and 'error' not in per_q[q]['digikala']]
         bs = [per_q[q]['basalam'] for q in qs if 'error' not in per_q[q]['basalam']]
         avg = lambda rows, k: (sum(r[k] or 0 for r in rows) / len(rows)) if rows and any(r.get(k) is not None for r in rows) else None
         cat[sub] = {
             'queries': qs,
             'dk_total': avg(dk, 'total'), 'dk_brands': avg(dk, 'brands'), 'dk_reviews_top': avg(dk, 'reviews_top'),
             'dk_nobrand_share': avg(dk, 'nobrand_share'), 'dk_median_price': median([r['median_price'] for r in dk]),
-            'bs_total': avg(bs, 'total'), 'bs_vendors_top': avg(bs, 'vendors_top'), 'bs_reviews_top': avg(bs, 'reviews_top'),
+            'bs_total': avg(bs, 'total'), 'bs_vendors_top': avg(bs, 'vendors_top'), 'bs_sales_top': avg(bs, 'sales_top'), 'bs_sales_week_top': avg(bs, 'sales_week_top'),
             'bs_median_price': median([r['median_price'] for r in bs]),
             'units': (supply.get(sub) or {}).get('n'), 'reach': (supply.get(sub) or {}).get('reach'),
         }
     # components (0..1, higher = better opportunity)
-    demand = scale({s: (log1p(c['dk_reviews_top']) + log1p(c['bs_reviews_top'])) if (c['dk_reviews_top'] is not None or c['bs_reviews_top'] is not None) else None for s, c in cat.items()})
-    compet = scale({s: log1p(c['dk_brands']) if c['dk_brands'] is not None else None for s, c in cat.items()})
-    gap = {s: c['dk_nobrand_share'] for s, c in cat.items()}
-    supp = scale({s: log1p(c['reach']) if c['reach'] is not None else None for s, c in cat.items()})
-    W = {'demand': 0.35, 'low_competition': 0.25, 'brand_gap': 0.15, 'supply': 0.25}
+    def comp(fn):
+        return scale({s: fn(c) for s, c in cat.items()})
+    demand = comp(lambda c: None if c['bs_sales_week_top'] is None and c['dk_reviews_top'] is None
+                  else log1p(c['bs_sales_week_top']) + log1p(c['dk_reviews_top']))
+    compet = comp(lambda c: None if c['bs_total'] is None else log1p(c['bs_total']) + log1p(c['bs_vendors_top']))
+    supp = comp(lambda c: None if c['reach'] is None else log1p(c['reach']))
+    W = {'demand': 0.4, 'low_competition': 0.25, 'supply': 0.35}
     for s, c in cat.items():
-        parts = {'demand': demand[s], 'low_competition': None if compet[s] is None else 1 - compet[s],
-                 'brand_gap': gap[s], 'supply': supp[s]}
+        parts = {'demand': demand[s], 'low_competition': None if compet[s] is None else 1 - compet[s], 'supply': supp[s]}
         got = {k: v for k, v in parts.items() if v is not None}
         wsum = sum(W[k] for k in got)
         c['components'] = {k: (None if v is None else round(v, 3)) for k, v in parts.items()}
@@ -158,9 +164,10 @@ def main():
     allq = list(dict.fromkeys(q for qs in queries.values() for q in qs))
     per_q = {}
     for i, q in enumerate(allq, 1):
-        per_q[q] = {'digikala': run_site(digikala, q)}
-        time.sleep(random.uniform(*DELAY))
-        per_q[q]['basalam'] = run_site(basalam, q)
+        per_q[q] = {'basalam': run_site(basalam, q)}
+        if USE_DIGIKALA:
+            time.sleep(random.uniform(*DELAY))
+            per_q[q]['digikala'] = run_site(digikala, q)
         time.sleep(random.uniform(*DELAY))
         print(f'[{i}/{len(allq)}] {q}', flush=True)
     subs_path = os.path.join(DATA_DIR, 'subs.json')

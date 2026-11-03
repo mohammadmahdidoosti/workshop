@@ -99,8 +99,8 @@ html, body { margin: 0; background: var(--color-bg); }
   </section>
 
   <section class="card" id="market">
-    <h2>فرصت بازار (دیجی‌کالا و باسلام)</h2>
-    <p class="note">شاخص فرصت ۰ تا ۱۰۰ از داده‌ی واقعی بازار: <b>تقاضا</b> (تعداد نظرهای محصولات اول جستجو در دیجی‌کالا و باسلام)، <b>رقابت کم</b> (تعداد برندها در دیجی‌کالا، معکوس)، <b>شکاف برند</b> (سهم محصولات بی‌برند در نتایج اول) و <b>تأمین‌کننده</b> (تعداد واحدهای قابل تماس در لیست). همه‌ی اجزا بین دسته‌ها مقایسه‌ای‌اند، نه مطلق. روی ردیف بزنید تا جزئیات و تأمین‌کننده‌های آن دسته باز شود؛ نشانگر را روی ردیف نگه دارید تا کلیدواژه‌ها را ببینید.</p>
+    <h2>فرصت بازار (باسلام)</h2>
+    <p class="note">شاخص فرصت ۰ تا ۱۰۰ از داده‌ی واقعی بازار: <b>تقاضا</b> (فروش هفتگی محصولات اول جستجو در باسلام)، <b>رقابت کم</b> (تعداد محصولات و فروشنده‌ها، معکوس) و <b>تأمین‌کننده</b> (تعداد واحدهای قابل تماس در لیست). اجزا بین دسته‌ها مقایسه‌ای‌اند، نه مطلق. روی ردیف بزنید تا جزئیات و تأمین‌کننده‌های آن دسته باز شود؛ نشانگر را روی ردیف نگه دارید تا کلیدواژه‌ها را ببینید.</p>
     <p class="note mk-meta"></p>
     <p class="note mk-status">در حال بارگذاری…</p>
     <div class="tbox mk-table" hidden>
@@ -110,11 +110,10 @@ html, body { margin: 0; background: var(--color-bg); }
           <th><button type="button" data-mk-sort="sub">زیردسته</button></th>
           <th class="num"><button type="button" data-mk-sort="index">شاخص فرصت</button></th>
           <th class="num"><button type="button" data-mk-sort="demand">تقاضا</button></th>
-          <th class="num"><button type="button" data-mk-sort="dk_brands">برندهای دیجی‌کالا</button></th>
-          <th class="num"><button type="button" data-mk-sort="dk_nobrand_share">بی‌برند</button></th>
-          <th class="num hide-n"><button type="button" data-mk-sort="dk_reviews_top">نظرهای دیجی‌کالا</button></th>
+          <th class="num"><button type="button" data-mk-sort="bs_sales_week_top">فروش هفتگی</button></th>
           <th class="num hide-n"><button type="button" data-mk-sort="bs_total">محصولات باسلام</button></th>
-          <th class="num hide-n"><button type="button" data-mk-sort="dk_median_price">قیمت میانه (تومان)</button></th>
+          <th class="num hide-n"><button type="button" data-mk-sort="bs_vendors_top">فروشنده در نتایج اول</button></th>
+          <th class="num hide-n"><button type="button" data-mk-sort="bs_median_price">قیمت میانه (تومان)</button></th>
           <th class="num"><button type="button" data-mk-sort="reach">تأمین‌کننده با تماس</button></th>
         </tr></thead>
         <tbody class="mk-body"></tbody>

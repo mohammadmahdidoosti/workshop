@@ -4,7 +4,7 @@
   if (!root) return;
   const fmt = d3.format(',');
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
-  const toman = (rial) => (rial ? fmt(Math.round(rial / 10)) : '—'); // Digikala prices are in rial
+  const toman = (rial) => (rial ? fmt(Math.round(rial / 10)) : '—'); // marketplace prices are in rial
   const pct = (x) => (x == null ? '—' : Math.round(x * 100) + '%');
   const num = (x) => (x == null ? '—' : fmt(Math.round(x)));
   const status = root.querySelector('.mk-status');
@@ -26,9 +26,9 @@
       const lab = el('span', 'mk-idx', r.index == null ? '—' : r.index.toFixed(0));
       tdIdx.append(lab, bar);
       tr.append(el('td', 'num', String(i + 1)), el('td', null, r.sub), tdIdx,
-        el('td', 'num', pct(r.c.demand)), el('td', 'num', num(r.dk_brands)), el('td', 'num', pct(r.dk_nobrand_share)),
-        el('td', 'num hide-n', num(r.dk_reviews_top)), el('td', 'num hide-n', num(r.bs_total)),
-        el('td', 'num hide-n', toman(r.dk_median_price)), el('td', 'num', num(r.reach)));
+        el('td', 'num', pct(r.c.demand)), el('td', 'num', num(r.bs_sales_week_top)),
+        el('td', 'num hide-n', num(r.bs_total)), el('td', 'num hide-n', num(r.bs_vendors_top)),
+        el('td', 'num hide-n', toman(r.bs_median_price)), el('td', 'num', num(r.reach)));
       tr.title = 'کلیدواژه‌ها: ' + r.queries.join('، ');
       tr.addEventListener('click', () => {
         if (window.dash) dash.setParams({ sub: r.sub });
@@ -51,7 +51,7 @@
       root.querySelector('.mk-table').hidden = false;
       const w = m.weights || {};
       meta.textContent = 'آخرین به‌روزرسانی: ' + new Date(m.generated_at).toLocaleDateString('fa-IR') +
-        ' · وزن‌ها: تقاضا ' + pct(w.demand) + '، رقابت کم ' + pct(w.low_competition) + '، شکاف برند ' + pct(w.brand_gap) + '، تأمین‌کننده ' + pct(w.supply);
+        ' · وزن‌ها: تقاضا ' + pct(w.demand) + '، رقابت کم ' + pct(w.low_competition) + '، تأمین‌کننده ' + pct(w.supply);
       draw();
     })
     .catch(() => { status.textContent = 'هنوز داده‌ی بازار جمع نشده است. بعد از اولین اجرای خزشگر (market/collect.py) این بخش پر می‌شود.'; });
