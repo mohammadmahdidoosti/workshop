@@ -3,8 +3,9 @@
   const FILES = {
     subs: 'data/subs.json', totals: 'data/totals.json', clusters: 'data/clusters.json',
     units_b2b: 'data/units_b2b.json', units_d2c: 'data/units_d2c.json',
+    themes: 'themes.json',
   };
-  const DEFAULTS = { province: 'همه استان‌ها', model: 'همه مدل‌ها', sub: null, q: '' };
+  const DEFAULTS = { province: 'همه استان‌ها', model: 'همه مدل‌ها', sub: null, q: '', theme: null };
   const store = {};
   const draws = new Map();
   const onDataFns = [];
@@ -40,15 +41,15 @@
     store[id] = { status: 'loading', data: [] };
     fetch(FILES[id], { cache: 'no-cache' })
       .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then((d) => { store[id] = { status: 'ok', data: d }; render(); })
+      .then((d) => { store[id] = { status: 'ok', data: d }; render(); window.dispatchEvent(new Event('dash-data')); })
       .catch((e) => { store[id] = { status: 'error', data: [], message: String(e) }; render(); });
   };
 
   window.dash = {
     data(id) { load(id); return store[id]; },
     params() { return Object.assign({}, params); },
-    setParams(p) { params = Object.assign({}, params, p); saveHash(); render(); },
-    resetParams() { params = Object.assign({}, DEFAULTS); saveHash(); render(); },
+    setParams(p) { params = Object.assign({}, params, p); saveHash(); render(); window.dispatchEvent(new Event('dash-params')); },
+    resetParams() { params = Object.assign({}, DEFAULTS); saveHash(); render(); window.dispatchEvent(new Event('dash-params')); },
     onData(fn) { onDataFns.push(fn); render(); },
     draw(name, fn) { if (fn) draws.set(name, fn); render(); },
     colors: ['#2f6fdb', '#d9822b', '#3a9d5d', '#b5487a', '#7a5cc4', '#c4a72f', '#4aa3b5', '#8a8a8a'],

@@ -14,8 +14,10 @@
 
   const draw = () => {
     tbody.replaceChildren();
-    const maxIdx = d3.max(rows, (r) => r.index) || 100;
-    rows.slice().sort((a, b) => {
+    const ts = window.wpThemeSubs ? window.wpThemeSubs() : null;
+    const view = ts ? rows.filter((r) => ts.has(r.sub)) : rows;
+    const maxIdx = d3.max(view, (r) => r.index) || 100;
+    view.slice().sort((a, b) => {
       const x = a[sortKey], y = b[sortKey];
       if (typeof x === 'string') return x.localeCompare(y, 'fa') * sortDir;
       return ((x ?? -1) - (y ?? -1)) * sortDir;
@@ -53,6 +55,8 @@
       meta.textContent = 'آخرین به‌روزرسانی: ' + new Date(m.generated_at).toLocaleDateString('fa-IR') +
         ' · وزن‌ها: تقاضا ' + pct(w.demand) + '، رقابت کم ' + pct(w.low_competition) + '، تأمین‌کننده ' + pct(w.supply);
       draw();
+      window.addEventListener('dash-params', draw);
+      window.addEventListener('dash-data', draw);
     })
     .catch(() => { status.textContent = 'هنوز داده‌ی بازار جمع نشده است. بعد از اولین اجرای خزشگر (market/collect.py) این بخش پر می‌شود.'; });
 })();

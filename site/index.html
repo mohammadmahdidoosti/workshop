@@ -59,6 +59,13 @@ html, body { margin: 0; background: var(--color-bg); }
 .wp .angle { font-size: var(--cds-font-size-body); line-height: 1.8; margin: 0 0 var(--cds-gap-md); }
 .wp .chip { background: var(--color-bg); }
 @media (max-width: 40rem) { .wp .hide-n { display: none; } }
+.wp .th-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)); gap: var(--cds-gap-sm); }
+.wp .th-card { all: unset; box-sizing: border-box; cursor: pointer; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-sm) var(--cds-pad-lg); background: var(--color-bg); display: flex; flex-direction: column; gap: 2px; }
+.wp .th-card:hover { border-color: #2f6fdb; }
+.wp .th-card.on { border-color: #2f6fdb; box-shadow: inset 0 0 0 1px #2f6fdb; }
+.wp .th-card b { font-size: var(--cds-font-size-body); }
+.wp .th-card span { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.wp .th-detail { margin-top: var(--cds-gap-lg); }
 .wp .mk-bar { height: 4px; border-radius: 2px; background: #2f6fdb; margin-top: 3px; }
 .wp .mk-idx { font-weight: 600; }
 [data-dash-source-state=empty] { color: transparent; }
@@ -75,8 +82,29 @@ html, body { margin: 0; background: var(--color-bg); }
     <select data-draw="sel-province" data-source="totals" aria-label="استان"></select>
     <select data-draw="sel-model" data-source="totals" aria-label="مدل پیشنهادی"></select>
     <button class="lx-reset" type="button">پاک کردن فیلترها</button>
+    <button class="lx-clear-theme chip" type="button" hidden>موضوع: <span data-draw="theme-name" data-source="themes">—</span> ×</button>
     <button class="lx-clear-sub chip" type="button" hidden>دسته: <span data-draw="sub-name" data-source="subs" data-field="sub">—</span> ×</button>
   </div>
+
+  <section class="card" id="themes">
+    <h2>موضوع‌ها</h2>
+    <p class="note">هر موضوع چند زیردسته را کنار هم می‌آورد و یک واحد می‌تواند در چند موضوع باشد (مثلاً گلاب هم در «سلامت» هست هم در «خوراکی»). روی هر موضوع بزنید تا همه‌ی صفحه — جدول دسته‌ها، نقشه، فرصت بازار و لیست تأمین‌کننده‌ها — به آن محدود شود.</p>
+    <div class="th-grid" data-draw="th-cards" data-source="themes"></div>
+    <div class="th-detail" hidden>
+      <h2 class="th-h" data-draw="th-title" data-source="themes">—</h2>
+      <p class="note" data-draw="th-line" data-source="themes">—</p>
+      <div class="lx-health" hidden>
+        <h2>زیرحوزه‌های سلامت</h2>
+        <p class="note">برچسب‌گذاری جداگانه از روی نام محصولات (نه فقط دسته‌ی اصلی). دارو، تجهیزات پزشکی و مکمل مجوز وزارت بهداشت/سازمان غذا و دارو لازم دارند؛ برای آن‌ها نمایندگی آنلاین یا فروش B2B به کلینیک و داروخانه واقع‌بینانه‌تر از برند شخصی است.</p>
+        <div class="tbox" style="max-height:22rem">
+          <table>
+            <thead><tr><th>زیرحوزه</th><th class="num">واحد</th><th class="num">با تماس</th><th class="num hide-n">موبایل</th><th class="hide-n">شهرک‌های اصلی</th><th class="hide-n">نمونه محصولات</th></tr></thead>
+            <tbody data-draw="th-health" data-source="themes"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <section class="tiles" id="kpis">
     <div class="tile"><div class="lbl">تعداد واحد</div><div class="val" data-draw="kpi" data-k="n" data-source="totals" data-field="n">—</div></div>
@@ -174,7 +202,7 @@ html, body { margin: 0; background: var(--color-bg); }
     <div class="bar" style="margin-bottom:var(--cds-gap-sm)">
       <input class="lx-q" type="search" placeholder="جستجو در نام، محصول یا شهرک…" aria-label="جستجو">
     </div>
-    <p class="note lx-noq">برای دیدن لیست، یک دسته انتخاب کنید یا چیزی جستجو کنید.</p>
+    <p class="note lx-noq">برای دیدن لیست، یک موضوع یا دسته انتخاب کنید یا چیزی جستجو کنید.</p>
     <div class="tbox lx-tb" hidden>
       <table data-source="units_b2b" data-row-key="id">
         <thead><tr>
@@ -225,9 +253,14 @@ const subModel = () => {
   const hit = r.find((x) => x.province === ALLP && x.sub === s);
   return hit ? hit.model : null;
 };
+const HEALTH = 'سلامت و بهداشت';
+const TH = () => dash.params().theme || null;
+const themeData = () => rows('themes');
+const themeSubs = () => { const t = TH(), d = themeData(); if (!t || !d) return null; return new Set(Object.entries(d.sub_themes).filter(([, v]) => v.includes(t)).map(([k]) => k)); };
+window.wpThemeSubs = themeSubs;
 const wantFiles = () => {
   const s = dash.params().sub, q = (dash.params().q || '').trim();
-  if (!s && !q) return [];
+  if (!s && !q && !TH()) return [];
   if (s) { const m = subModel(); if (m === undefined) return []; if (m) return [D2C_MODELS.includes(m) ? 'd2c' : 'b2b']; }
   const mm = M();
   if (mm === ALLM) return ['b2b', 'd2c'];
@@ -238,6 +271,10 @@ const wantFiles = () => {
 dash.onData(() => {
   const s = dash.params().sub;
   document.querySelectorAll('.lx-clear-sub').forEach((b) => { b.hidden = !s; });
+  const t = TH();
+  document.querySelectorAll('.lx-clear-theme').forEach((b) => { b.hidden = !t; });
+  document.querySelectorAll('.th-detail').forEach((e) => { e.hidden = !t; });
+  document.querySelectorAll('.lx-health').forEach((e) => { e.hidden = t !== HEALTH; });
   document.querySelectorAll('.lx-sub').forEach((e) => { e.hidden = !s; });
   document.querySelectorAll('.lx-nosub').forEach((e) => { e.hidden = !!s; });
   const f = wantFiles();
@@ -250,6 +287,7 @@ dash.onData(() => {
 // controls
 document.querySelectorAll('.lx-reset').forEach((b) => b.addEventListener('click', () => dash.resetParams()));
 document.querySelectorAll('.lx-clear-sub').forEach((b) => b.addEventListener('click', () => dash.setParams({ sub: null })));
+document.querySelectorAll('.lx-clear-theme').forEach((b) => b.addEventListener('click', () => dash.setParams({ theme: null, sub: null })));
 document.querySelectorAll('.lx-q').forEach((inp) => {
   let t; inp.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => dash.setParams({ q: inp.value.trim() }), 350); });
 });
@@ -277,7 +315,13 @@ dash.draw('sel-model', (sel) => {
 
 // KPIs
 const totRow = () => { const r = rows('totals'); return r ? r.find((x) => x.province === P() && x.model === M()) : null; };
+const themeRow = (prov) => { const d = themeData(); return d ? d.summary.find((x) => x.theme === TH() && x.province === (prov || P())) : null; };
 const kpi = (el, k) => {
+  if (TH()) {
+    const d = themeData(); const tr = themeRow();
+    if (k === 'cats') { const s = subsSel(); el.textContent = s ? fmt(s.length) : '—'; return; }
+    el.textContent = tr ? fmt(tr[k]) : (d ? '0' : '—'); return;
+  }
   const t = totRow();
   el.setAttribute('data-where', 'province=' + enc(P()) + '&model=' + enc(M()));
   el.textContent = t ? fmt(t[k]) : '—';
@@ -288,7 +332,8 @@ dash.draw('kpi-n2', (el) => kpi(el, 'n'));
 // subs in current selection
 const subsSel = () => {
   const r = rows('subs'); if (!r) return null;
-  return r.filter((x) => x.province === P() && (M() === ALLM || x.model === M()));
+  const ts = themeSubs();
+  return r.filter((x) => x.province === P() && (M() === ALLM || x.model === M()) && (!ts || ts.has(x.sub)));
 };
 const topBy = (el, key) => {
   const s = subsSel();
@@ -329,6 +374,12 @@ dash.draw('ch-model', (el) => {
   hbar(el, d, (x) => x.model, (x) => dash.setParams({ model: M() === x.model ? ALLM : x.model }), (x) => M() === ALLM || x.model === M());
 });
 dash.draw('ch-prov', (el) => {
+  if (TH()) {
+    const d = themeData(); if (!d) { el.replaceChildren(); return; }
+    const dd = d.summary.filter((x) => x.theme === TH() && x.province !== ALLP).sort((a, b) => b.n - a.n).slice(0, 15);
+    hbar(el, dd, (x) => x.province, (x) => dash.setParams({ province: P() === x.province ? ALLP : x.province }), (x) => P() === ALLP || x.province === P());
+    return;
+  }
   const r = rows('totals'); if (!r) { el.replaceChildren(); return; }
   const d = r.filter((x) => x.model === M() && x.province !== ALLP).sort((a, b) => b.n - a.n).slice(0, 15);
   hbar(el, d, (x) => x.province, (x) => dash.setParams({ province: P() === x.province ? ALLP : x.province }), (x) => P() === ALLP || x.province === P());
@@ -426,11 +477,13 @@ const unitBody = (tb, id) => {
   tb.replaceChildren();
   const r = rows(id); if (!r) return;
   const s = dash.params().sub, q = (dash.params().q || '').trim(), p = P(), mm = M();
+  const th = TH(), ts = themeSubs() || new Set(), td = themeData(), hids = td ? td.health_ids : null;
   const out = [];
   for (const d of r) {
     if (s && d.sub !== s) continue;
     if (p !== ALLP && d.province !== p) continue;
     if (!s && mm !== ALLM && d.model !== mm) continue;
+    if (!s && th && !(ts.has(d.sub) || (th === HEALTH && hids && hids[d.id]))) continue;
     if (q && !(d.name + ' ' + d.products + ' ' + d.park).includes(q)) continue;
     out.push(d); if (out.length >= 300) break;
   }
@@ -441,6 +494,37 @@ const unitBody = (tb, id) => {
     tb.appendChild(tr);
   });
 };
+// themes
+dash.draw('th-cards', (box) => {
+  box.replaceChildren();
+  const d = themeData(); if (!d) return;
+  d.themes.forEach((t) => {
+    const r = d.summary.find((x) => x.theme === t && x.province === P());
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'th-card' + (TH() === t ? ' on' : '');
+    const n = document.createElement('b'); n.textContent = t;
+    const m = document.createElement('span'); m.textContent = r ? fmt(r.n) + ' واحد · ' + fmt(r.reach) + ' با تماس' : '—';
+    b.append(n, m);
+    b.addEventListener('click', () => dash.setParams({ theme: TH() === t ? null : t, sub: null }));
+    box.appendChild(b);
+  });
+});
+dash.draw('theme-name', (el) => { el.textContent = TH() || '—'; });
+dash.draw('th-title', (el) => { el.textContent = TH() ? TH() + (P() !== ALLP ? ' — ' + P() : '') : '—'; });
+dash.draw('th-line', (el) => {
+  const r = TH() ? themeRow() : null;
+  el.textContent = r ? (fmt(r.n) + ' واحد، ' + fmt(r.reach) + ' با شماره تماس، ' + fmt(r.mob) + ' با موبایل. زیردسته‌های اصلی: ' + r.top_subs + '. شهرک‌های اصلی: ' + r.top_parks + '.') : '—';
+});
+dash.draw('th-health', (tb) => {
+  tb.replaceChildren();
+  const d = themeData(); if (!d || TH() !== HEALTH) return;
+  d.health_topics.filter((x) => x.province === P()).sort((a, b) => b.n - a.n).forEach((x) => {
+    const tr = document.createElement('tr');
+    [[x.topic], [fmt(x.n), 'num'], [fmt(x.reach), 'num'], [fmt(x.mob), 'num hide-n'], [x.top_parks, 'hide-n'], [x.examples, 'hide-n']]
+      .forEach(([v, c]) => { const td = document.createElement('td'); if (c) td.className = c; td.textContent = v; tr.appendChild(td); });
+    tb.appendChild(tr);
+  });
+});
+
 dash.draw('u-b2b', (tb) => unitBody(tb, 'units_b2b'));
 dash.draw('u-d2c', (tb) => unitBody(tb, 'units_d2c'));
 </script>
