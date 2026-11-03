@@ -59,6 +59,8 @@ html, body { margin: 0; background: var(--color-bg); }
 .wp .angle { font-size: var(--cds-font-size-body); line-height: 1.8; margin: 0 0 var(--cds-gap-md); }
 .wp .chip { background: var(--color-bg); }
 @media (max-width: 40rem) { .wp .hide-n { display: none; } }
+.wp .mk-bar { height: 4px; border-radius: 2px; background: #2f6fdb; margin-top: 3px; }
+.wp .mk-idx { font-weight: 600; }
 [data-dash-source-state=empty] { color: transparent; }
 [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
 </style>
@@ -93,6 +95,30 @@ html, body { margin: 0; background: var(--color-bg); }
       <h2>۱۵ استان اول</h2>
       <p class="note">برای مدل انتخاب‌شده. روی هر میله بزنید تا استان فیلتر شود.</p>
       <div class="chart" data-draw="ch-prov" data-source="totals"></div>
+    </div>
+  </section>
+
+  <section class="card" id="market">
+    <h2>فرصت بازار (دیجی‌کالا و باسلام)</h2>
+    <p class="note">شاخص فرصت ۰ تا ۱۰۰ از داده‌ی واقعی بازار: <b>تقاضا</b> (تعداد نظرهای محصولات اول جستجو در دیجی‌کالا و باسلام)، <b>رقابت کم</b> (تعداد برندها در دیجی‌کالا، معکوس)، <b>شکاف برند</b> (سهم محصولات بی‌برند در نتایج اول) و <b>تأمین‌کننده</b> (تعداد واحدهای قابل تماس در لیست). همه‌ی اجزا بین دسته‌ها مقایسه‌ای‌اند، نه مطلق. روی ردیف بزنید تا جزئیات و تأمین‌کننده‌های آن دسته باز شود؛ نشانگر را روی ردیف نگه دارید تا کلیدواژه‌ها را ببینید.</p>
+    <p class="note mk-meta"></p>
+    <p class="note mk-status">در حال بارگذاری…</p>
+    <div class="tbox mk-table" hidden>
+      <table>
+        <thead><tr>
+          <th class="num">#</th>
+          <th><button type="button" data-mk-sort="sub">زیردسته</button></th>
+          <th class="num"><button type="button" data-mk-sort="index">شاخص فرصت</button></th>
+          <th class="num"><button type="button" data-mk-sort="demand">تقاضا</button></th>
+          <th class="num"><button type="button" data-mk-sort="dk_brands">برندهای دیجی‌کالا</button></th>
+          <th class="num"><button type="button" data-mk-sort="dk_nobrand_share">بی‌برند</button></th>
+          <th class="num hide-n"><button type="button" data-mk-sort="dk_reviews_top">نظرهای دیجی‌کالا</button></th>
+          <th class="num hide-n"><button type="button" data-mk-sort="bs_total">محصولات باسلام</button></th>
+          <th class="num hide-n"><button type="button" data-mk-sort="dk_median_price">قیمت میانه (تومان)</button></th>
+          <th class="num"><button type="button" data-mk-sort="reach">تأمین‌کننده با تماس</button></th>
+        </tr></thead>
+        <tbody class="mk-body"></tbody>
+      </table>
     </div>
   </section>
 
@@ -421,5 +447,6 @@ dash.draw('u-d2c', (tb) => unitBody(tb, 'units_d2c'));
 </script>
 
 </div>
+<script src="market.js"></script>
 </body>
 </html>
