@@ -66,6 +66,17 @@ html, body { margin: 0; background: var(--color-bg); }
 .wp .th-card b { font-size: var(--cds-font-size-body); }
 .wp .th-card span { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
 .wp .th-detail { margin-top: var(--cds-gap-lg); }
+.wp .fj-chip { cursor: pointer; font-size: var(--cds-font-size-caption); padding: 2px var(--cds-pad-sm); border-radius: 999px; }
+.wp .fj-chip.on { border-color: #2f6fdb; box-shadow: inset 0 0 0 1px #2f6fdb; }
+.wp .fj-tag { display: inline-block; white-space: nowrap; border-radius: 999px; padding: 0 8px; font-size: var(--cds-font-size-caption); }
+.wp .fj-b { background: color-mix(in srgb, #3a9d5d 18%, transparent); }
+.wp .fj-m { background: color-mix(in srgb, #c4a72f 22%, transparent); }
+.wp .fj-s { background: color-mix(in srgb, #cf222e 16%, transparent); }
+.wp .fj-n { background: color-mix(in srgb, #8a8a8a 22%, transparent); }
+.wp .fj-u { background: color-mix(in srgb, #8a8a8a 8%, transparent); }
+.wp .fj-list { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0; }
+.wp .fj-co { border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 2px 8px; font-size: var(--cds-font-size-caption); direction: ltr; }
+.wp a { color: #2f6fdb; }
 .wp .mk-bar { height: 4px; border-radius: 2px; background: #2f6fdb; margin-top: 3px; }
 .wp .mk-idx { font-weight: 600; }
 [data-dash-source-state=empty] { color: transparent; }
@@ -145,6 +156,23 @@ html, body { margin: 0; background: var(--color-bg); }
           <th class="num"><button type="button" data-mk-sort="reach">تأمین‌کننده با تماس</button></th>
         </tr></thead>
         <tbody class="mk-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card" id="fjlabs">
+    <h2>مارکت‌پلیس‌های جهانی (پورتفوی FJ Labs) و فرصت در ایران</h2>
+    <p class="note">۴۸۰ مارکت‌پلیسی که FJ Labs در آن‌ها سرمایه‌گذاری کرده، به تفکیک مدل کسب‌وکار. «تعداد» یعنی FJ Labs چند بار روی همین مدل شرط بسته؛ هرچه بیشتر، مدل آزموده‌تر. روی هر ردیف بزنید تا همه‌ی شرکت‌های آن مدل را ببینید. مدل کسب‌وکار از نام و صنعت شرکت برداشت شده و بازیگران ایرانی از دانسته‌های عمومی است و ممکن است به‌روز نباشد. <a href="fjlabs-marketplaces-iran.xlsx" download>دانلود فایل اکسل</a></p>
+    <p class="note fj-meta"></p>
+    <div class="bar" style="margin-bottom:var(--cds-gap-sm)">
+      <div class="fj-chips bar"></div>
+      <input class="fj-q" type="search" placeholder="جستجو در مدل، شرکت یا صنعت…" aria-label="جستجو در مارکت‌پلیس‌ها">
+    </div>
+    <p class="note fj-status">در حال بارگذاری…</p>
+    <div class="tbox fj-table" hidden>
+      <table>
+        <thead><tr><th>مدل کسب‌وکار</th><th>وضعیت در ایران</th><th class="num">تعداد</th><th class="hide-n">نمونه‌ها</th><th>بازیگران ایرانی</th><th class="hide-n">نکته / ارتباط با کار شما</th></tr></thead>
+        <tbody class="fj-body"></tbody>
       </table>
     </div>
   </section>
@@ -531,5 +559,6 @@ dash.draw('u-d2c', (tb) => unitBody(tb, 'units_d2c'));
 
 </div>
 <script src="market.js"></script>
+<script src="fjlabs.js"></script>
 </body>
 </html>
