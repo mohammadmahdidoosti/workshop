@@ -305,7 +305,8 @@ def main():
             mc = []
             for ph in fm['site']:
                 k = ' ' + norm(ph) + ' '
-                mc += [c for c, nm in cat_norm if k in nm]
+                # the category must be ABOUT this thing: its name starts with the phrase
+                mc += [c for c, nm in cat_norm if nm.startswith(k)]
             mc = list({c['id']: c for c in mc}.values())
             mx = max([c.get('count', 0) for c in mc], default=0)
             status = 'none' if not mc else ('empty' if mx == 0 else ('thin' if mx < 20 else 'ok'))
