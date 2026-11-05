@@ -294,6 +294,45 @@ def main():
         out_needs.append({'sub': sub, 'workshops': n_ws, 'needs': rows})
     out_needs.sort(key=lambda x: -x['workshops'])
 
+
+    # ---- product families by layer (1 = priced, 2 = inquiry, 3 = service)
+    fam_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'families.json')
+    out_fams = []
+    if os.path.exists(fam_path):
+        fams = json.load(open(fam_path, encoding='utf-8'))
+        n_all = len(units)
+        for fm in fams:
+            mc = []
+            for ph in fm['site']:
+                k = ' ' + norm(ph) + ' '
+                mc += [c for c, nm in cat_norm if k in nm]
+            mc = list({c['id']: c for c in mc}.values())
+            mx = max([c.get('count', 0) for c in mc], default=0)
+            status = 'none' if not mc else ('empty' if mx == 0 else ('thin' if mx < 20 else 'ok'))
+            sup = set()
+            for ph in fm['supply']:
+                kt = [stem(t) for t in norm(ph).split()]
+                if kt:
+                    sets = sorted((index.get(t, set()) for t in kt), key=len)
+                    sup |= set(sets[0]).intersection(*sets[1:])
+            if 'ALL' in fm['buyers']:
+                bidx, buyers_eff = list(range(n_all)), 0.25 * n_all
+            else:
+                bidx = [i for i, u in enumerate(units) if any(u['sub'].startswith(p) for p in fm['buyers'])]
+                buyers_eff = len(bidx)
+            factor = {'none': 1.0, 'empty': 1.0, 'thin': 0.6, 'ok': 0.15}[status]
+            score = round(10 * factor * (0.6 * math.log10(1 + buyers_eff) + 0.4 * math.log10(1 + len(sup))), 1)
+            bsubs = Counter(units[i]['sub'] for i in bidx).most_common(4) if 'ALL' not in fm['buyers'] else [['همه‌ی واحدها', n_all]]
+            out_fams.append({
+                'name': fm['name'], 'layer': fm['layer'], 'kind': fm['kind'], 'price': fm['price'],
+                'status': status, 'site_max': mx, 'site_cats': len(mc),
+                'cat_names': [c['name'] for c in sorted(mc, key=lambda c: -c.get('count', 0))[:5]],
+                'buyers': len(bidx), 'buyers_all': 'ALL' in fm['buyers'], 'buyer_subs': [list(x) for x in bsubs],
+                'supply': len(sup), 'score': score, 'seeds': fm['site'],
+                'sup_ids': [units[i]['id'] for i in sorted(sup, key=lambda i: (not has_mobile(i), i))[:40]],
+                'buy_ids': [units[i]['id'] for i in sorted(bidx[:4000], key=lambda i: (not has_mobile(i), i))[:40]],
+            })
+        out_fams.sort(key=lambda x: (x['layer'], -x['score']))
     total_products = sum(c.get('count', 0) for c in cats)
     summary = {
         'generated': datetime.now(timezone.utc).isoformat(timespec='minutes'),
@@ -307,7 +346,7 @@ def main():
         'gap_A': sum(1 for c in out_cats if c['gap'] == 'A'),
         'gap_C': sum(1 for c in out_cats if c['gap'] == 'C'),
     }
-    res = {'summary': summary, 'cats': out_cats, 'subs': out_subs, 'needs': out_needs}
+    res = {'summary': summary, 'cats': out_cats, 'subs': out_subs, 'needs': out_needs, 'families': out_fams}
     dst = os.path.join(DATA_DIR, 'gaps.json')
     json.dump(res, open(dst + '.tmp', 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     os.replace(dst + '.tmp', dst)
@@ -315,6 +354,9 @@ def main():
     print('top A/C:')
     for c in [c for c in out_cats if c['gap'] != 'OK'][:25]:
         print(f"  [{c['gap']}] {c['name']} ({c['root']}) products={c['count']} units={c['units']} score={c['score']}")
+    print('layer-1 families:')
+    for f in [f for f in out_fams if f['layer'] == 1][:30]:
+        print(f"  {f['score']:5} {f['status']:5} site={f['site_max']} buyers={f['buyers']} supply={f['supply']} {f['name']}")
     print('top subs (low coverage):')
     for s in out_subs[:15]:
         print(f"  {s['sub']}: units={s['units']} covered={s['coverage']}% phrases={[p for p, _, _ in s['phrases'][:5]]}")

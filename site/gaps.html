@@ -23,12 +23,28 @@
   <div class="tiles" id="tiles"></div>
 
   <nav class="tabs" id="subtabs">
-    <button data-t="subs" class="on">زیرگروه‌ها: پوشش و محصولات بی‌دسته</button>
+    <button data-t="fams" class="on">اولویت‌ها: قیمت‌دار، استعلامی، خدمات</button>
+    <button data-t="subs">زیرگروه‌ها: پوشش و محصولات بی‌دسته</button>
     <button data-t="cats">دسته‌های خالی یا کم‌محصول سایت</button>
     <button data-t="needs">نیاز صنعتی کارگاه‌های مصرفی</button>
   </nav>
 
-  <section id="t-subs" class="card">
+  <section id="t-fams" class="card">
+    <h2>خانواده‌های محصول صنعتی که کاروان صنعت ندارد یا کم دارد</h2>
+    <p class="note">سه لایه به ترتیب اجرا: <b>۱. قیمت‌دار</b> (کالا، قطعه و ماشین‌آلات؛ قیمت از کراول یا made-in-china) — الان؛ <b>۲. استعلامی</b> (مواد اولیه با قیمت روزانه؛ UX جدا لازم دارد) — بعد؛ <b>۳. خدمات</b> (سفارش ساخت) — آخر. «خریدار» = کارگاه‌های داشبورد که این خانواده را برای تولید یا کارشان می‌خرند (برای اقلام عمومی مثل بلبرینگ همه‌ی واحدها، با وزن کمتر در امتیاز). «سازنده» = کارگاه‌هایی که خودشان این را تولید می‌کنند. امتیاز = خریدار و سازنده، ضرب در شکاف سایت (ندارد/خالی کامل، کم ۶۰٪، دارد ۱۵٪). روی «سازنده» یا «خریدار» بزنید تا فهرست واحدها را ببینید.</p>
+    <div class="bar">
+      <button class="fj-chip chip on" data-l="1">۱. قیمت‌دار</button>
+      <button class="fj-chip chip" data-l="2">۲. استعلامی</button>
+      <button class="fj-chip chip" data-l="3">۳. خدمات</button>
+      <select id="f-kind" aria-label="نوع"><option value="">همه‌ی انواع</option><option>ماشین‌آلات</option><option>قطعه و مصرفی</option><option>کالا</option></select>
+      <label class="muted"><input type="checkbox" id="f-gap" checked> فقط آن‌هایی که سایت ندارد یا کم دارد</label>
+    </div>
+    <div class="tbox" style="max-height:none"><table><thead><tr>
+      <th>#</th><th>خانواده</th><th class="hide-n">نوع</th><th class="hide-n">منبع قیمت</th><th>در سایت</th><th class="num">خریدار</th><th class="num">سازنده</th><th class="num">امتیاز</th>
+    </tr></thead><tbody id="b-fams"></tbody></table></div>
+  </section>
+
+  <section id="t-subs" class="card" hidden>
     <h2>هر زیرگروه داشبورد چقدر در سایت محصول دارد؟</h2>
     <p class="note">«پوشش» یعنی سهم کارگاه‌هایی که محصولشان با حداقل یک دسته‌ی دارای محصول در سایت جور شد. «فقط دسته خالی» یعنی دسته‌اش در سایت هست ولی هنوز محصول ندارد (کراولر ممکن است پرش کند). «بی‌دسته» یعنی هیچ دسته‌ای برایش در سایت پیدا نشد؛ عبارت‌های پرتکرار همین کارگاه‌ها پیشنهاد دسته‌ی جدید است. روی هر عبارت بزنید تا کارگاه‌ها را ببینید.</p>
     <div class="bar"><input type="search" id="q-subs" placeholder="جستجوی زیرگروه یا عبارت…"></div>
@@ -97,7 +113,7 @@
   // ---- sub tabs
   document.querySelectorAll('#subtabs button').forEach((b) => b.addEventListener('click', () => {
     document.querySelectorAll('#subtabs button').forEach((x) => x.classList.toggle('on', x === b));
-    ['subs', 'cats', 'needs'].forEach((t) => { $('#t-' + t).hidden = t !== b.dataset.t; });
+    ['fams', 'subs', 'cats', 'needs'].forEach((t) => { $('#t-' + t).hidden = t !== b.dataset.t; });
     history.replaceState(null, '', '#' + b.dataset.t);
   }));
 
@@ -115,6 +131,31 @@
     const s = G.subs[+ph.dataset.s], p = s.phrases[+ph.dataset.p];
     document.querySelectorAll('.ph.on').forEach((x) => x.classList.remove('on')); ph.classList.add('on');
     showUnits(`«${p[0]}» در ${s.sub}`, `${fa(p[1])} کارگاه این عبارت را در محصولاتشان دارند و دسته‌ای در سایت برایشان پیدا نشد (حداکثر ۴۰ نمونه، اول دارندگان موبایل).`, p[2]);
+  });
+
+
+  let lsel = '1';
+  const ST = { none: '<span class="fj-tag gA">ندارد</span>', empty: '<span class="fj-tag gA">دسته خالی</span>', thin: '<span class="fj-tag gC">کم</span>', ok: '<span class="fj-tag gOK">دارد</span>' };
+  function drawFams() {
+    const kind = $('#f-kind').value, gapOnly = $('#f-gap').checked;
+    const rows = (G.families || []).filter((f) => String(f.layer) === lsel && (!kind || f.kind === kind) && (!gapOnly || f.status !== 'ok'));
+    $('#b-fams').innerHTML = rows.map((f, i) => {
+      const k = G.families.indexOf(f);
+      return `<tr><td class="num muted">${fa(i + 1)}</td><td><b>${esc(f.name)}</b></td><td class="hide-n muted">${esc(f.kind)}</td><td class="hide-n muted">${esc(f.price)}</td>
+      <td>${ST[f.status]} ${f.site_max ? '<small class="muted">تا ' + fa(f.site_max) + ' محصول — ' + esc(f.cat_names.slice(0, 3).join('، ')) + '</small>' : ''}</td>
+      <td class="num"><span class="ph" data-f="${k}" data-w="b" title="${esc(f.buyer_subs.map((x) => x[0] + ' ' + x[1]).join('، '))}">${f.buyers_all ? 'همه' : fa(f.buyers)}</span></td>
+      <td class="num"><span class="ph" data-f="${k}" data-w="s">${fa(f.supply)}</span></td><td class="num"><b>${fa(f.score)}</b></td></tr>`;
+    }).join('') || '<tr><td colspan="8">موردی نیست</td></tr>';
+  }
+  document.querySelectorAll('[data-l]').forEach((b) => b.addEventListener('click', () => {
+    lsel = b.dataset.l; document.querySelectorAll('[data-l]').forEach((x) => x.classList.toggle('on', x === b)); drawFams();
+  }));
+  $('#f-kind').addEventListener('change', drawFams); $('#f-gap').addEventListener('change', drawFams);
+  $('#b-fams').addEventListener('click', (e) => {
+    const ph = e.target.closest('.ph[data-f]'); if (!ph) return;
+    const f = G.families[+ph.dataset.f];
+    if (ph.dataset.w === 's') showUnits(`سازنده‌های «${f.name}»`, `${fa(f.supply)} واحد در داشبورد این خانواده را تولید می‌کنند (حداکثر ۴۰ نمونه).`, f.sup_ids);
+    else showUnits(`نمونه خریدارهای «${f.name}»`, `خریدارها: ${f.buyer_subs.map((x) => x[0] + ' (' + fa(x[1]) + ')').join('، ')} — ۴۰ نمونه.`, f.buy_ids);
   });
 
   let gsel = 'AC';
@@ -164,8 +205,8 @@
       ['کارگاه با محصول در سایت', s.units_covered], ['دسته‌ی خالی با کارگاه', s.gap_A], ['دسته‌ی کم‌محصول با کارگاه', s.gap_C]];
     $('#tiles').innerHTML = tiles.map(([l, v]) => `<div class="tile"><div class="lbl">${l}</div><div class="val">${fa(v)}</div></div>`).join('');
     $('#foot').textContent = `به‌روزرسانی: ${new Date(s.generated).toLocaleString('fa-IR')} — تطبیق با نام دسته و متن «محصولات» پروانه‌ی بهره‌برداری است و تقریبی است؛ برای اجرا، نمونه‌ها را چک کنید. خارج از محدوده‌ها حذف شده‌اند.`;
-    drawSubs(); drawCats(); drawNeeds();
-    const t = location.hash.slice(1); if (['cats', 'needs'].includes(t)) document.querySelector(`#subtabs [data-t="${t}"]`).click();
+    drawFams(); drawSubs(); drawCats(); drawNeeds();
+    const t = location.hash.slice(1); if (['subs', 'cats', 'needs'].includes(t)) document.querySelector(`#subtabs [data-t="${t}"]`).click();
   }).catch((e) => { $('#lead').textContent = 'فایل تحلیل هنوز ساخته نشده (gaps.json). اسکریپت market/gaps.py را روی سرور اجرا کنید. ' + e; });
 })();
 </script>
