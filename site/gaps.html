@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>شکاف کاتالوگ کاروان صنعت</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="dash-root">
+<div class="wp" lang="fa">
+  <nav class="tabs" aria-label="بخش‌ها">
+    <a href="index.html">داشبورد کارگاه‌ها</a>
+    <a href="gaps.html" class="on">شکاف کاتالوگ کاروان صنعت</a>
+  </nav>
+
+  <header>
+    <h1>کارگاهش هست، محصولش در کاروان صنعت نیست</h1>
+    <p class="lead" id="lead">در حال بارگذاری…</p>
+  </header>
+
+  <div class="tiles" id="tiles"></div>
+
+  <nav class="tabs" id="subtabs">
+    <button data-t="subs" class="on">زیرگروه‌ها: پوشش و محصولات بی‌دسته</button>
+    <button data-t="cats">دسته‌های خالی یا کم‌محصول سایت</button>
+    <button data-t="needs">نیاز صنعتی کارگاه‌های مصرفی</button>
+  </nav>
+
+  <section id="t-subs" class="card">
+    <h2>هر زیرگروه داشبورد چقدر در سایت محصول دارد؟</h2>
+    <p class="note">«پوشش» یعنی سهم کارگاه‌هایی که محصولشان با حداقل یک دسته‌ی دارای محصول در سایت جور شد. «فقط دسته خالی» یعنی دسته‌اش در سایت هست ولی هنوز محصول ندارد (کراولر ممکن است پرش کند). «بی‌دسته» یعنی هیچ دسته‌ای برایش در سایت پیدا نشد؛ عبارت‌های پرتکرار همین کارگاه‌ها پیشنهاد دسته‌ی جدید است. روی هر عبارت بزنید تا کارگاه‌ها را ببینید.</p>
+    <div class="bar"><input type="search" id="q-subs" placeholder="جستجوی زیرگروه یا عبارت…"></div>
+    <div class="tbox" style="max-height:none"><table><thead><tr>
+      <th>زیرگروه</th><th class="hide-n">مدل</th><th class="num">واحد</th><th>پوشش</th><th class="num hide-n">فقط دسته خالی</th><th class="num">بی‌دسته</th><th>محصولات پرتکرار بی‌دسته (پیشنهاد دسته جدید)</th>
+    </tr></thead><tbody id="b-subs"></tbody></table></div>
+  </section>
+
+  <section id="t-cats" class="card" hidden>
+    <h2>دسته‌هایی که در سایت هست و کارگاه دارد</h2>
+    <p class="note">امتیاز = تعداد کارگاه‌های جورشده (وزن‌دار با تناسب B2B) تقسیم بر ریشه‌ی تعداد محصول فعلی. دسته‌ی <span class="fj-tag gA">خالی</span> صفر محصول دارد، <span class="fj-tag gC">کم</span> زیر ۱۰ محصول و <span class="fj-tag gOK">دارد</span> ۱۰ یا بیشتر.</p>
+    <div class="bar">
+      <button class="fj-chip chip on" data-g="AC">خالی + کم</button>
+      <button class="fj-chip chip" data-g="A">فقط خالی</button>
+      <button class="fj-chip chip" data-g="C">فقط کم</button>
+      <button class="fj-chip chip" data-g="OK">دارای محصول</button>
+      <button class="fj-chip chip" data-g="ALL">همه</button>
+      <input type="search" id="q-cats" placeholder="جستجوی دسته…">
+    </div>
+    <div class="tbox"><table><thead><tr>
+      <th>دسته</th><th class="hide-n">مسیر</th><th class="num">محصول در سایت</th><th class="num">کارگاه</th><th class="num hide-n">استان</th><th class="hide-n">زیرگروه‌های اصلی</th><th class="num">امتیاز</th>
+    </tr></thead><tbody id="b-cats"></tbody></table></div>
+  </section>
+
+  <section id="t-needs" class="card" hidden>
+    <h2>کارگاه‌های عسل، خرما، آرایشی و … برای تولید چه می‌خرند؟</h2>
+    <p class="note">برای هر گروه مصرفی، اقلام صنعتی موردنیازش را با دسته‌های سایت و با سازنده‌های همان قلم در داشبورد مقایسه کرده‌ایم. <span class="fj-tag gA">فرصت</span> یعنی سایت محصول ندارد ولی سازنده‌اش در داشبورد هست. روی هر ردیف بزنید تا سازنده‌ها را ببینید.</p>
+    <div id="b-needs" class="grid"></div>
+  </section>
+
+  <section class="card" id="detail" hidden>
+    <h2 id="d-title"></h2>
+    <p class="note" id="d-note"></p>
+    <div class="tbox"><table><thead><tr>
+      <th>نام واحد</th><th>استان</th><th class="hide-n">شهرک</th><th>محصولات</th><th>موبایل</th><th class="hide-n">ثابت</th>
+    </tr></thead><tbody id="d-body"></tbody></table></div>
+  </section>
+
+  <p class="note" id="foot"></p>
+</div>
+</div>
+<script>
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const fa = (n) => Number(n || 0).toLocaleString('fa-IR');
+  let G = null, units = null, unitsP = null;
+
+  const loadUnits = () => unitsP || (unitsP = Promise.all(['data/units_b2b.json', 'data/units_d2c.json']
+    .map((f) => fetch(f, { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : []))))
+    .then(([a, b]) => { units = new Map(); for (const u of a.concat(b)) units.set(u.id, u); }));
+
+  function showUnits(title, note, ids) {
+    $('#detail').hidden = false;
+    $('#d-title').textContent = title;
+    $('#d-note').textContent = note;
+    $('#d-body').innerHTML = '<tr><td colspan="6">در حال بارگذاری…</td></tr>';
+    loadUnits().then(() => {
+      const rows = ids.map((id) => units.get(id)).filter(Boolean);
+      $('#d-body').innerHTML = rows.map((u) => `<tr><td>${esc(u.name)}</td><td>${esc(u.province)}</td><td class="hide-n">${esc(u.park)}</td><td>${esc(u.products)}</td><td dir="ltr">${esc(u.mobile)}</td><td class="hide-n" dir="ltr">${esc(u.landline)}</td></tr>`).join('')
+        || '<tr><td colspan="6">موردی نیست</td></tr>';
+      $('#detail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  // ---- sub tabs
+  document.querySelectorAll('#subtabs button').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('#subtabs button').forEach((x) => x.classList.toggle('on', x === b));
+    ['subs', 'cats', 'needs'].forEach((t) => { $('#t-' + t).hidden = t !== b.dataset.t; });
+    history.replaceState(null, '', '#' + b.dataset.t);
+  }));
+
+  function drawSubs() {
+    const q = $('#q-subs').value.trim();
+    const rows = G.subs.filter((s) => !q || s.sub.includes(q) || s.phrases.some((p) => p[0].includes(q)));
+    $('#b-subs').innerHTML = rows.map((s, i) => `<tr>
+      <td><b>${esc(s.sub)}</b></td><td class="hide-n muted">${esc(s.model)}</td><td class="num">${fa(s.units)}</td>
+      <td><div class="covbar" title="${s.coverage}%"><i style="width:${s.coverage}%"></i></div><small>${fa(s.coverage)}٪</small></td>
+      <td class="num hide-n">${fa(s.empty_only)}</td><td class="num">${fa(s.unmatched)}</td>
+      <td>${s.phrases.map((p, j) => `<span class="ph" data-s="${G.subs.indexOf(s)}" data-p="${j}">${esc(p[0])} <small>${fa(p[1])}</small></span>`).join('')}</td></tr>`).join('');
+  }
+  $('#b-subs').addEventListener('click', (e) => {
+    const ph = e.target.closest('.ph'); if (!ph) return;
+    const s = G.subs[+ph.dataset.s], p = s.phrases[+ph.dataset.p];
+    document.querySelectorAll('.ph.on').forEach((x) => x.classList.remove('on')); ph.classList.add('on');
+    showUnits(`«${p[0]}» در ${s.sub}`, `${fa(p[1])} کارگاه این عبارت را در محصولاتشان دارند و دسته‌ای در سایت برایشان پیدا نشد (حداکثر ۴۰ نمونه، اول دارندگان موبایل).`, p[2]);
+  });
+
+  let gsel = 'AC';
+  function drawCats() {
+    const q = $('#q-cats').value.trim();
+    const rows = G.cats.filter((c) => (gsel === 'ALL' || (gsel === 'AC' ? c.gap !== 'OK' : c.gap === gsel))
+      && (!q || c.name.includes(q) || c.path.includes(q))).slice(0, 400);
+    const tag = { A: '<span class="fj-tag gA">خالی</span>', C: '<span class="fj-tag gC">کم</span>', OK: '<span class="fj-tag gOK">دارد</span>' };
+    $('#b-cats').innerHTML = rows.map((c) => `<tr class="click" data-id="${c.id}">
+      <td><b>${esc(c.name)}</b> ${tag[c.gap]}</td><td class="hide-n muted">${esc(c.path)}</td><td class="num">${fa(c.count)}</td><td class="num">${fa(c.units)}</td>
+      <td class="num hide-n">${fa(c.provinces)}</td><td class="hide-n muted">${c.subs.map((s) => `${esc(s[0])} (${fa(s[1])})`).join('، ')}</td><td class="num">${fa(c.score)}</td></tr>`).join('')
+      || '<tr><td colspan="7">موردی نیست</td></tr>';
+  }
+  document.querySelectorAll('[data-g]').forEach((b) => b.addEventListener('click', () => {
+    gsel = b.dataset.g; document.querySelectorAll('[data-g]').forEach((x) => x.classList.toggle('on', x === b)); drawCats();
+  }));
+  $('#b-cats').addEventListener('click', (e) => {
+    const tr = e.target.closest('tr[data-id]'); if (!tr) return;
+    const c = G.cats.find((x) => x.id === +tr.dataset.id);
+    document.querySelectorAll('#b-cats tr.on').forEach((x) => x.classList.remove('on')); tr.classList.add('on');
+    showUnits(`کارگاه‌های دسته «${c.name}»`, `${fa(c.units)} کارگاه، ${fa(c.count)} محصول در سایت. مسیر: ${c.path || '—'} (حداکثر ۶۰ نمونه).`, c.ids);
+  });
+
+  function drawNeeds() {
+    $('#b-needs').innerHTML = G.needs.map((g, gi) => `<div class="card"><h2>${esc(g.sub)} <small class="muted">${fa(g.workshops)} کارگاه</small></h2>
+      <table><thead><tr><th>قلم موردنیاز</th><th>در سایت</th><th class="num">سازنده در داشبورد</th></tr></thead><tbody>
+      ${g.needs.map((n, ni) => {
+        const opp = n.site_products === 0 && n.suppliers > 0;
+        return `<tr class="click" data-g="${gi}" data-n="${ni}"><td><b>${esc(n.need)}</b> ${opp ? '<span class="fj-tag gA">فرصت</span>' : ''}</td>
+        <td class="muted">${n.site_products ? fa(n.site_products) + ' محصول — ' + esc(n.cat_names.join('، ')) : 'ندارد'}</td><td class="num">${fa(n.suppliers)}</td></tr>`;
+      }).join('')}</tbody></table></div>`).join('');
+  }
+  $('#b-needs').addEventListener('click', (e) => {
+    const tr = e.target.closest('tr[data-n]'); if (!tr) return;
+    const g = G.needs[+tr.dataset.g], n = g.needs[+tr.dataset.n];
+    showUnits(`سازنده‌های «${n.need}» (برای ${g.sub})`, `${fa(n.suppliers)} واحد B2B در داشبورد این قلم را می‌سازند (حداکثر ۴۰ نمونه).`, n.ids);
+  });
+
+  $('#q-subs').addEventListener('input', drawSubs);
+  $('#q-cats').addEventListener('input', drawCats);
+
+  fetch('data/gaps.json', { cache: 'no-cache' }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }).then((g) => {
+    G = g; const s = g.summary;
+    const cov = s.units_in_scope ? Math.round(100 * s.units_covered / s.units_in_scope) : 0;
+    $('#lead').innerHTML = `سایت <b>${fa(s.categories)}</b> دسته دارد که <b>${fa(s.categories_with_products)}</b> تایش محصول دارد. از <b>${fa(s.units_in_scope)}</b> کارگاه داشبورد، فقط <b>${fa(cov)}٪</b> با دسته‌ای که محصول دارد جور می‌شوند؛ بقیه یا دسته‌شان خالی است یا اصلاً دسته‌ای ندارند.`;
+    const tiles = [['دسته‌های سایت', s.categories], ['دسته‌ی دارای محصول', s.categories_with_products], ['کارگاه در محدوده', s.units_in_scope],
+      ['کارگاه با محصول در سایت', s.units_covered], ['دسته‌ی خالی با کارگاه', s.gap_A], ['دسته‌ی کم‌محصول با کارگاه', s.gap_C]];
+    $('#tiles').innerHTML = tiles.map(([l, v]) => `<div class="tile"><div class="lbl">${l}</div><div class="val">${fa(v)}</div></div>`).join('');
+    $('#foot').textContent = `به‌روزرسانی: ${new Date(s.generated).toLocaleString('fa-IR')} — تطبیق با نام دسته و متن «محصولات» پروانه‌ی بهره‌برداری است و تقریبی است؛ برای اجرا، نمونه‌ها را چک کنید. خارج از محدوده‌ها حذف شده‌اند.`;
+    drawSubs(); drawCats(); drawNeeds();
+    const t = location.hash.slice(1); if (['cats', 'needs'].includes(t)) document.querySelector(`#subtabs [data-t="${t}"]`).click();
+  }).catch((e) => { $('#lead').textContent = 'فایل تحلیل هنوز ساخته نشده (gaps.json). اسکریپت market/gaps.py را روی سرور اجرا کنید. ' + e; });
+})();
+</script>
+</body>
+</html>

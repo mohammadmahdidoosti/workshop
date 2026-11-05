@@ -15,3 +15,14 @@
 
 ## به‌روزرسانی داده
 فایل‌های JSON را در `/srv/smeanalysis-data` روی سرور جایگزین کنید؛ نیازی به push یا Redeploy نیست.
+
+## شکاف کاتالوگ کاروان صنعت (gaps.html)
+
+اسکریپت `market/gaps.py` دسته‌های caravansanat.com را از API عمومی وردپرس می‌خواند (فقط خواندن، آهسته)، با محصولات کارگاه‌های داشبورد تطبیق می‌دهد و `DATA_DIR/gaps.json` را می‌سازد. صفحه‌ی `gaps.html` همین فایل را نشان می‌دهد.
+
+اجرا داخل کانتینر (ترمینال Coolify):
+
+    python3 /app/market/gaps.py            # حدود ۳-۴ دقیقه
+    python3 /app/market/gaps.py --no-fetch # بدون خواندن دوباره‌ی دسته‌ها
+
+نیازهای صنعتی کارگاه‌های مصرفی در `market/needs.json` تعریف شده‌اند.
