@@ -42,7 +42,9 @@ GENERIC = set('لوازم تجهیزات قطعات ابزار ابزارهای 
 # single words too ambiguous to stand alone as a category match
 AMBIG = set('تبدیل رابط مغزی کمربند درپوش کپ برس پایه قاب سینی جعبه میز کیف گیره پانچر سه چهار دو تک '
             'فلوتر سوپاپ کر خار قلم پیچ مهره بست کلید شیر فنر چرخ تسمه نوار سیم لوله کابل فیلتر رنگ چسب '
-            'پمپ موتور کولر جک گان پدال سیفون پنل لامپ ریسه کود بذر روغن ورق فرز اره دریل مته اتو پرس قالب'.split())
+            'پمپ موتور کولر جک گان پدال سیفون پنل لامپ ریسه کود بذر روغن ورق فرز اره دریل مته اتو پرس قالب '
+            'برقی خانگی ساختمانی فلزی پلاستیکی دستی شارژی بادی هیدرولیکی هیدرولیک پنوماتیک صنعتی کشاورزی '
+            'اشپزخانه حمام اب گاز هوا برق استیل فولادی چدنی مسی الومینیومی پلی اتیلن'.split())
 PHRASE_STOP = STOP | GENERIC | set('انواع تولید ساخت و از با در جهت مختلف کاربرد کاربردی بسته بندی شده های ها '
                                     'سایز رنگی ساده درجه یک دو سه کیلو کیلویی گرم گرمی لیتر لیتری سانتی متر میلی عدد '
                                     'خام نیمه صادراتی داخلی خارجی غیر تجهیز قطعه جنس اقلام فراورده انواعی کلیه سایز مختلف '
@@ -173,12 +175,26 @@ def main():
     # ---- match categories
     cat_units = {}
     unit_cats = defaultdict(list)
+    seen_keys = set()
+    # parents first, so a duplicate name keeps the broader category
+    depth = {}
     for c in cats:
+        d, x = 0, c
+        while x.get('parent') in by and d < 10:
+            x = by[x['parent']]; d += 1
+        depth[c['id']] = d
+    for c in sorted(cats, key=lambda c: (depth[c['id']], -c.get('count', 0))):
         if root(c) in ('برندها و خطوط محصول', 'بدون دسته بندی'):
             continue
+        if re.search(r'[0-9۰-۹]', c['name']):
+            continue  # size/model variant ("سیم افشان 1 در 10"); its parent covers it
         req = required_tokens(c['name'])
         if not req:
             continue
+        key = frozenset(req)
+        if key in seen_keys:
+            continue
+        seen_keys.add(key)
         sets = sorted((index.get(t, set()) for t in req), key=len)
         hit = set(sets[0]).intersection(*sets[1:]) if sets else set()
         if hit:
